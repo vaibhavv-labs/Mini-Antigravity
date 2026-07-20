@@ -19,6 +19,7 @@
             --text-3: #52525b;
             --blue: #3b82f6;
             --green: #22c55e;
+            --red: #ef4444;
             --purple: #a855f7;
             --radius: 12px;
         }
@@ -85,10 +86,7 @@
             flex-direction: column;
         }
 
-        .sidebar-head {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-        }
+        .sidebar-head { padding: 16px; border-bottom: 1px solid var(--border); }
 
         .new-btn {
             width: 100%;
@@ -154,7 +152,9 @@
         }
 
         .topbar-title { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
-        .topbar-badge { font-size: 10px; padding: 2px 6px; background: rgba(234,179,8,0.15); color: #eab308; border-radius: 4px; font-weight: 600; }
+        .topbar-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .topbar-badge.demo { background: rgba(234,179,8,0.15); color: #eab308; }
+        .topbar-badge.connected { background: rgba(34,197,94,0.15); color: var(--green); }
 
         .chat { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .messages { flex: 1; overflow-y: auto; padding: 20px; }
@@ -214,6 +214,7 @@
         }
 
         .send-btn:hover { filter: brightness(1.1); }
+        .send-btn:disabled { background: var(--bg-4); cursor: not-allowed; }
 
         .hint { text-align: center; font-size: 11px; color: var(--text-3); margin-top: 6px; }
 
@@ -225,17 +226,10 @@
             flex-direction: column;
         }
 
-        .rpanel-head {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
+        .rpanel-head { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .rpanel-head h3 { font-size: 13px; font-weight: 500; }
 
-        .rpanel-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-        }
+        .rpanel-tabs { display: flex; border-bottom: 1px solid var(--border); }
 
         .rpanel-tab {
             flex: 1;
@@ -290,7 +284,7 @@
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 28px;
-            width: 400px;
+            width: 420px;
         }
 
         .modal-icon {
@@ -317,10 +311,14 @@
             border-radius: 8px;
             color: var(--text-0);
             font-size: 13px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .modal-input:focus { outline: none; border-color: var(--blue); }
+        .modal-input::placeholder { color: var(--text-3); }
+
+        .modal-hint { font-size: 11px; color: var(--text-3); margin-bottom: 12px; }
+        .modal-hint a { color: var(--blue); text-decoration: none; }
 
         .modal-btns { display: flex; gap: 8px; }
 
@@ -335,7 +333,9 @@
         }
 
         .mbtn.outline { background: var(--bg-3); color: var(--text-1); }
+        .mbtn.outline:hover { background: var(--bg-4); }
         .mbtn.fill { background: var(--blue); color: white; }
+        .mbtn.fill:hover { filter: brightness(1.1); }
 
         .toast {
             position: fixed;
@@ -362,9 +362,12 @@
         <div class="modal">
             <div class="modal-icon">M</div>
             <h2>Mini Antigravity</h2>
-            <p>Demo mode - AI responses are simulated. For real AI, deploy the full Flask app locally.</p>
+            <p>Enter your Gemini API key to enable real AI responses. Or skip for demo mode.</p>
+            <input type="text" class="modal-input" id="apiKeyInput" placeholder="Paste your Gemini API key..." />
+            <div class="modal-hint">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></div>
             <div class="modal-btns">
-                <button class="mbtn fill" onclick="document.getElementById('modal').classList.add('hidden')">Start Demo</button>
+                <button class="mbtn outline" onclick="startDemo()">Demo Mode</button>
+                <button class="mbtn fill" onclick="connectApi()">Connect</button>
             </div>
         </div>
     </div>
@@ -373,10 +376,8 @@
         <nav class="rail">
             <div class="rail-logo">M</div>
             <button class="rail-btn active">&#128172;</button>
-            <button class="rail-btn">&#128260;</button>
-            <button class="rail-btn">&#128187;</button>
             <div class="rail-spacer"></div>
-            <button class="rail-btn">&#9881;</button>
+            <button class="rail-btn" onclick="showSettings()">&#9881;</button>
         </nav>
 
         <aside class="sidebar">
@@ -396,7 +397,7 @@
                 <div class="topbar-title">
                     <span style="color: var(--blue);">&#9672;</span>
                     Mini Antigravity
-                    <span class="topbar-badge">Demo</span>
+                    <span class="topbar-badge demo" id="statusBadge">Demo</span>
                 </div>
             </div>
 
@@ -406,7 +407,7 @@
                     <div class="input-wrap">
                         <div class="input-box">
                             <textarea id="userInput" placeholder="Ask me anything..." rows="1"></textarea>
-                            <button class="send-btn" onclick="sendMsg()">&#9650;</button>
+                            <button class="send-btn" id="sendBtn" onclick="sendMsg()">&#9650;</button>
                         </div>
                         <div class="hint">Enter to send</div>
                     </div>
@@ -426,23 +427,23 @@
             <div class="rpanel-body hidden" id="tabAbout">
                 <div style="font-size: 12px; color: var(--text-2); line-height: 1.6;">
                     <p style="margin-bottom: 12px;"><strong style="color: var(--text-0);">Mini Antigravity</strong></p>
-                    <p style="margin-bottom: 12px;">A premium AI agent orchestration system inspired by Google Antigravity.</p>
+                    <p style="margin-bottom: 12px;">AI agent orchestration system inspired by Google Antigravity.</p>
                     <p style="margin-bottom: 12px;"><strong style="color: var(--text-0);">Features:</strong></p>
                     <ul style="padding-left: 16px; margin-bottom: 12px;">
                         <li>6 AI Agents</li>
-                        <li>Multi-Agent Orchestration</li>
-                        <li>File Explorer</li>
-                        <li>Terminal</li>
-                        <li>Gemini AI Integration</li>
+                        <li>Real Gemini AI</li>
+                        <li>Multi-Agent Workflows</li>
                     </ul>
-                    <p><strong style="color: var(--text-0);">GitHub:</strong></p>
-                    <a href="https://github.com/vaibhavv-labs/Mini-Antigravity" style="color: var(--blue);">vaibhavv-labs/Mini-Antigravity</a>
+                    <p style="margin-bottom: 8px;"><strong style="color: var(--text-0);">GitHub:</strong></p>
+                    <a href="https://github.com/vaibhavv-labs/Mini-Antigravity" style="color: var(--blue);" target="_blank">vaibhavv-labs/Mini-Antigravity</a>
                 </div>
             </div>
         </aside>
     </div>
 
-    <script>
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai";
+
         const agents = [
             { name: 'architect', icon: '&#127959;', color: '#3b82f6', desc: 'Designs systems' },
             { name: 'engineer', icon: '&#9889;', color: '#22c55e', desc: 'Writes code' },
@@ -452,29 +453,20 @@
             { name: 'devops', icon: '&#128640;', color: '#a855f7', desc: 'DevOps' }
         ];
 
-        const demoResponses = {
-            architect: function(msg) {
-                return "## Architecture Design\n\nBased on: **" + msg + "**\n\n### Components\n1. **Frontend** - React/Vue.js\n2. **API Gateway** - Node.js/Express\n3. **Backend** - Python/FastAPI\n4. **Database** - PostgreSQL\n\n### Structure\n```\nsrc/\n  /components    # UI components\n  /api          # API routes\n  /services     # Business logic\n  /models       # Data models\n```\n\n### Next Steps\n- Set up project structure\n- Implement core modules\n- Add tests";
-            },
-            engineer: function(msg) {
-                return "Here's the implementation for **" + msg + "**:\n\n```python\nclass Solution:\n    def __init__(self):\n        self.initialized = True\n    \n    def execute(self, *args, **kwargs):\n        try:\n            result = self._process(*args, **kwargs)\n            return {\"status\": \"success\", \"data\": result}\n        except Exception as e:\n            return {\"status\": \"error\", \"message\": str(e)}\n    \n    def _process(self, *args, **kwargs):\n        return \"Processed successfully\"\n\nsolution = Solution()\nresult = solution.execute()\nprint(result)\n```\n\nThis includes error handling and clean structure.";
-            },
-            coder: function(msg) {
-                return "Here's the code for **" + msg + "**:\n\n```python\ndef main():\n    print(\"Hello from Mini Antigravity!\")\n    data = process_input()\n    result = transform(data)\n    output(result)\n\ndef process_input():\n    return {\"key\": \"value\"}\n\ndef transform(data):\n    return {k: v.upper() if isinstance(v, str) else v for k, v in data.items()}\n\ndef output(result):\n    print(f\"Result: {result}\")\n\nif __name__ == \"__main__\":\n    main()\n```\n\nRun with: `python main.py`";
-            },
-            researcher: function(msg) {
-                return "## Research: " + msg + "\n\n### Key Findings\n1. **Industry Standard** - Well-established pattern\n2. **Best Practice** - Follow SOLID principles\n3. **Performance** - Consider caching\n\n### Recommendations\n- Use proven frameworks\n- Write tests\n- Document decisions";
-            },
-            reviewer: function(msg) {
-                return "## Code Review: " + msg + "\n\n### Issues Found\n| Severity | Issue | Suggestion |\n|----------|-------|------------|\n| High | Missing error handling | Add try/except |\n| Medium | No input validation | Validate inputs |\n| Low | Missing docstrings | Add docs |\n\n### Suggestions\n1. Add error handling\n2. Include unit tests\n3. Use type hints";
-            },
-            devops: function(msg) {
-                return "## Deployment Plan: " + msg + "\n\n### Steps\n1. Build: `docker build -t myapp:latest .`\n2. Test: `docker run --rm myapp:latest npm test`\n3. Push: `docker push registry/myapp:latest`\n4. Deploy: `kubectl apply -f deployment.yaml`\n\n### Monitoring\n- Health checks\n- Alerts\n- Logs";
-            }
+        const systemPrompts = {
+            architect: "You are a Technical Architect. Design systems, create specs, write checklists. Output markdown.",
+            engineer: "You are a Software Engineer. Write clean, production-ready code. Follow specs.",
+            coder: "You are a Coder. Write working code in any language. Explain briefly.",
+            researcher: "You are a Research Agent. Analyze info, provide insights, be concise.",
+            reviewer: "You are a Code Reviewer. Find bugs, suggest improvements.",
+            devops: "You are a DevOps Engineer. Help with deployment, Docker, cloud."
         };
 
         let selAgent = 'engineer';
-        let sid = crypto.randomUUID();
+        let connected = false;
+        let genAI = null;
+        let model = null;
+        let chat = null;
         let hist = [];
 
         function init() {
@@ -486,7 +478,7 @@
 
         function renderAgents() {
             document.getElementById('agentList').innerHTML = agents.map(a => `
-                <div class="agent-card ${a.name === selAgent ? 'active' : ''}" onclick="pickAgent('${a.name}')">
+                <div class="agent-card ${a.name === selAgent ? 'active' : ''}" onclick="window.pickAgent('${a.name}')">
                     <div class="agent-icon" style="background: ${a.color}20; color: ${a.color};">${a.icon}</div>
                     <div>
                         <div class="agent-name">${a.name}</div>
@@ -496,10 +488,11 @@
             `).join('');
         }
 
-        function pickAgent(name) {
+        window.pickAgent = function(name) {
             selAgent = name;
+            chat = null;
             renderAgents();
-        }
+        };
 
         function switchTab(el, tab) {
             document.querySelectorAll('.rpanel-tab').forEach(t => t.classList.remove('active'));
@@ -514,7 +507,7 @@
                     <div style="font-size: 40px; margin-bottom: 12px; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Mini Antigravity</div>
                     <p style="color: var(--text-2); font-size: 14px; margin-bottom: 20px;">Your AI development team. Pick an agent and start building.</p>
                     <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                        ${agents.map(a => `<div style="padding: 8px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; cursor: pointer;" onclick="pickAgent('${a.name}');document.getElementById('userInput').focus();">${a.icon} ${a.name}</div>`).join('')}
+                        ${agents.map(a => `<div style="padding: 8px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; cursor: pointer;" onclick="window.pickAgent('${a.name}');document.getElementById('userInput').focus();">${a.icon} ${a.name}</div>`).join('')}
                     </div>
                 </div>
             `;
@@ -534,7 +527,7 @@
             });
         }
 
-        function sendMsg() {
+        window.sendMsg = async function() {
             const ta = document.getElementById('userInput');
             const msg = ta.value.trim();
             if (!msg) return;
@@ -548,11 +541,32 @@
             ta.value = '';
             ta.style.height = 'auto';
 
-            setTimeout(function() {
-                const resp = demoResponses[selAgent] || demoResponses.engineer;
-                addMsg('agent', resp(msg));
-            }, 500);
-        }
+            document.getElementById('sendBtn').disabled = true;
+
+            if (connected && model) {
+                try {
+                    if (!chat) {
+                        chat = model.startChat({
+                            history: [
+                                { role: "user", parts: systemPrompts[selAgent] },
+                                { role: "model", parts: "Understood." }
+                            ]
+                        });
+                    }
+                    const result = await chat.sendMessage(msg);
+                    const response = result.response.text();
+                    addMsg('agent', response);
+                } catch(e) {
+                    addMsg('agent', 'Error: ' + e.message);
+                }
+            } else {
+                setTimeout(function() {
+                    addMsg('agent', getDemoResponse(selAgent, msg));
+                }, 500);
+            }
+
+            document.getElementById('sendBtn').disabled = false;
+        };
 
         function addMsg(type, text) {
             const container = document.getElementById('messages');
@@ -571,6 +585,9 @@
             `;
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
+
+            hist.push({ agent: selAgent, msg: msg, time: t });
+            updateHistory();
         }
 
         function fmt(text) {
@@ -582,10 +599,64 @@
             return text;
         }
 
-        function newChat() {
-            sid = crypto.randomUUID();
+        function updateHistory() {
+            document.getElementById('historyList').innerHTML = hist.slice(-8).map(h => `
+                <div style="padding: 6px 8px; font-size: 11px; color: var(--text-3); border-radius: 6px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${h.msg.substring(0, 30)}${h.msg.length > 30 ? '...' : ''}
+                </div>
+            `).join('') || '<div style="font-size: 12px; color: var(--text-3); padding: 8px;">No history yet</div>';
+        }
+
+        window.newChat = function() {
+            chat = null;
             document.getElementById('messages').innerHTML = '';
             showWelcome();
+        };
+
+        window.showSettings = function() {
+            document.getElementById('modal').classList.remove('hidden');
+        };
+
+        function getDemoResponse(agent, msg) {
+            const responses = {
+                architect: "## Architecture\n\nFor: **" + msg + "**\n\n### Components\n1. Frontend - React\n2. API - Node.js\n3. Database - PostgreSQL\n\n### Next Steps\n- Set up project\n- Implement modules",
+                engineer: "```python\ndef solve():\n    # Solution for: " + msg + "\n    return 'implemented'\n```",
+                coder: "```python\nprint('" + msg + "')\n```\n\nDone!",
+                researcher: "## Research\n\n**Topic:** " + msg + "\n\nKey findings and analysis.",
+                reviewer: "## Review\n\nIssues found:\n1. Add error handling\n2. Add tests",
+                devops: "## Deploy\n\n```bash\ndocker build -t app .\nkubectl apply -f deploy.yaml\n```"
+            };
+            return responses[agent] || "I'll help with: " + msg;
+        }
+
+        window.connectApi = async function() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (!key) return;
+
+            try {
+                genAI = new GoogleGenerativeAI(key);
+                model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+                connected = true;
+                document.getElementById('modal').classList.add('hidden');
+                document.getElementById('statusBadge').textContent = 'Connected';
+                document.getElementById('statusBadge').className = 'topbar-badge connected';
+                toast('Connected to Gemini AI');
+            } catch(e) {
+                toast('Error: ' + e.message);
+            }
+        };
+
+        window.startDemo = function() {
+            document.getElementById('modal').classList.add('hidden');
+            toast('Running in demo mode');
+        };
+
+        function toast(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
         }
 
         function loadTools() {
