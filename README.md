@@ -4,7 +4,6 @@ A premium AI agent orchestration system inspired by Google Antigravity.
 
 ![Mini Antigravity UI](public/UI.png)
 
-![UI Screenshot](screenshot.png)
 
 ## Features
 
