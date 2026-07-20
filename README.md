@@ -14,9 +14,6 @@ A premium AI agent orchestration system inspired by Google Antigravity.
 - **Gemini AI Integration** - Real AI-powered responses
 - **Premium UI** - Modern dark theme with glassmorphism
 
-## Live Demo
-
-**[Mini Antigravity - Live Demo](https://vaibhavv-labs.github.io/Mini-Antigravity/)**
 
 ### 1. Install Dependencies
 
