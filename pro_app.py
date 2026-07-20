@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Orbit PRO - Fixed & Polished
+Mini Antigravity - Fixed & Polished
 """
 
 from flask import Flask, render_template, request, jsonify
@@ -20,7 +20,7 @@ except ImportError:
     GEMINI_AVAILABLE = False
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'orbit-pro-secret'
+app.config['SECRET_KEY'] = 'mini-antigravity-secret'
 
 # ============== TOOL SYSTEM ==============
 

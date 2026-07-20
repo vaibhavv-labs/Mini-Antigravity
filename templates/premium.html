@@ -606,7 +606,7 @@
         function showWelcome() {
             document.getElementById('messages').innerHTML = `
                 <div style="max-width: 500px; margin: 80px auto; text-align: center;">
-                    <div style="font-size: 40px; margin-bottom: 12px; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Orbit</div>
+                    <div style="font-size: 40px; margin-bottom: 12px; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Mini Antigravity</div>
                     <p style="color: var(--text-2); font-size: 14px; margin-bottom: 20px;">Your AI development team. Pick an agent and start building.</p>
                     <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
                         ${agents.map(a => `<div style="padding: 8px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; cursor: pointer;" onclick="pickAgent('${a.name}');document.getElementById('userInput').focus();">${a.icon} ${a.name}</div>`).join('')}
