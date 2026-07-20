@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbit PRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-0: #09090b;
+            --bg-1: #111113;
+            --bg-2: #18181b;
+            --bg-3: #1f1f23;
+            --bg-4: #27272a;
+            --border: rgba(255,255,255,0.06);
+            --border-hover: rgba(255,255,255,0.12);
+            --text-0: #fafafa;
+            --text-1: #a1a1aa;
+            --text-2: #71717a;
+            --text-3: #52525b;
+            --blue: #3b82f6;
+            --green: #22c55e;
+            --red: #ef4444;
+            --yellow: #eab308;
+            --purple: #a855f7;
+            --orange: #f97316;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-0);
+            color: var(--text-0);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app { display: flex; height: 100vh; }
+
+        /* Left Rail */
+        .rail {
+            width: 64px;
+            background: var(--bg-1);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 4px;
+        }
+
+        .rail-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .rail-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-2);
+            transition: all 0.15s;
+            font-size: 18px;
+            border: none;
+            background: none;
+        }
+
+        .rail-btn:hover { background: var(--bg-3); color: var(--text-0); }
+        .rail-btn.active { background: rgba(59,130,246,0.15); color: var(--blue); }
+        .rail-spacer { flex: 1; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-1);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-head {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .new-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .new-btn:hover { filter: brightness(1.1); }
+
+        .sidebar-body { flex: 1; overflow-y: auto; padding: 12px; }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 8px 6px;
+        }
+
+        .agent-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.12s;
+            margin-bottom: 2px;
+        }
+
+        .agent-card:hover { background: var(--bg-3); }
+        .agent-card.active { background: rgba(59,130,246,0.1); }
+
+        .agent-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .agent-name { font-size: 13px; font-weight: 500; }
+        .agent-desc { font-size: 11px; color: var(--text-2); }
+
+        /* Main */
+        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+        .topbar {
+            height: 48px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .topbar-title { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .topbar-badge { font-size: 10px; padding: 2px 6px; background: rgba(34,197,94,0.15); color: var(--green); border-radius: 4px; font-weight: 600; }
+
+        /* Chat */
+        .chat { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .messages { flex: 1; overflow-y: auto; padding: 20px; }
+
+        .msg { max-width: 720px; margin: 0 auto 20px; animation: fadeUp 0.25s ease; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .msg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .msg-avatar { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .msg-name { font-size: 13px; font-weight: 500; }
+        .msg-time { font-size: 11px; color: var(--text-3); }
+        .msg-body { padding-left: 32px; font-size: 14px; line-height: 1.7; color: var(--text-1); }
+        .msg-body pre { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin: 10px 0; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+        .msg-body code { background: var(--bg-3); padding: 1px 5px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+        .msg-body pre code { background: none; padding: 0; }
+        .msg-body table { border-collapse: collapse; margin: 10px 0; width: 100%; }
+        .msg-body th, .msg-body td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; font-size: 12px; }
+        .msg-body th { background: var(--bg-2); }
+
+        /* Input */
+        .input-area { padding: 12px 20px 20px; }
+        .input-wrap { max-width: 720px; margin: 0 auto; }
+        .input-box {
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            padding: 10px 12px;
+            transition: border-color 0.2s;
+        }
+        .input-box:focus-within { border-color: var(--blue); }
+        .input-box textarea {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-0);
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            min-height: 20px;
+            max-height: 100px;
+            line-height: 1.5;
+        }
+        .input-box textarea:focus { outline: none; }
+        .input-box textarea::placeholder { color: var(--text-3); }
+
+        .send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--blue);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: white;
+            font-size: 16px;
+        }
+
+        .send-btn:hover { filter: brightness(1.1); }
+        .send-btn:disabled { background: var(--bg-4); cursor: not-allowed; }
+
+        .hint { text-align: center; font-size: 11px; color: var(--text-3); margin-top: 6px; }
+
+        /* Right Panel */
+        .rpanel {
+            width: 320px;
+            background: var(--bg-1);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .rpanel-head {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .rpanel-head h3 { font-size: 13px; font-weight: 500; }
+
+        .rpanel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rpanel-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-3);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+        }
+
+        .rpanel-tab:hover { color: var(--text-1); }
+        .rpanel-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+        .rpanel-body { flex: 1; overflow-y: auto; padding: 12px; }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+
+        .tool-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--bg-3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .tool-name { font-size: 12px; font-weight: 500; }
+        .tool-desc { font-size: 11px; color: var(--text-3); }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .file-item:hover { background: var(--bg-3); }
+        .file-icon { font-size: 14px; }
+        .file-name { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .file-meta { font-size: 10px; color: var(--text-3); }
+
+        /* Workflow */
+        .wf-step {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .wf-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .wf-icon.done { background: rgba(34,197,94,0.15); }
+        .wf-icon.running { background: rgba(59,130,246,0.15); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+        .wf-title { font-size: 13px; font-weight: 500; }
+        .wf-status { font-size: 11px; color: var(--text-2); }
+        .wf-result { font-size: 12px; color: var(--text-1); margin-top: 8px; padding: 10px; background: var(--bg-3); border-radius: 6px; max-height: 120px; overflow-y: auto; }
+
+        /* Modal */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+        .modal p { font-size: 13px; color: var(--text-2); margin-bottom: 16px; line-height: 1.5; }
+
+        .modal-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-0);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .modal-input:focus { outline: none; border-color: var(--blue); }
+
+        .modal-btns { display: flex; gap: 8px; }
+
+        .mbtn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .mbtn.outline { background: var(--bg-3); color: var(--text-1); }
+        .mbtn.outline:hover { background: var(--bg-4); }
+        .mbtn.fill { background: var(--blue); color: white; }
+        .mbtn.fill:hover { filter: brightness(1.1); }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: var(--bg-3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 200;
+            animation: toastUp 0.3s ease;
+        }
+
+        @keyframes toastUp { from { transform: translateX(-50%) translateY(10px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+
+        .hidden { display: none !important; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="modal-bg" id="modal">
+        <div class="modal">
+            <div class="modal-icon">O</div>
+            <h2>Connect AI</h2>
+            <p>Enter your Gemini API key to enable AI agents. Get one free at aistudio.google.com</p>
+            <input type="text" class="modal-input" id="apiKeyInput" placeholder="Paste API key..." />
+            <div class="modal-btns">
+                <button class="mbtn outline" onclick="skipModal()">Demo Mode</button>
+                <button class="mbtn fill" onclick="connectApi()">Connect</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app">
+        <nav class="rail">
+            <div class="rail-logo">O</div>
+            <button class="rail-btn active" data-view="chat" onclick="switchView('chat')">&#128172;</button>
+            <button class="rail-btn" data-view="orch" onclick="switchView('orch')">&#128260;</button>
+            <button class="rail-btn" data-view="term" onclick="switchView('term')">&#128187;</button>
+            <div class="rail-spacer"></div>
+            <button class="rail-btn" onclick="togglePanel()">&#9881;</button>
+        </nav>
+
+        <aside class="sidebar">
+            <div class="sidebar-head">
+                <button class="new-btn" onclick="newChat()">+ New Chat</button>
+            </div>
+            <div class="sidebar-body">
+                <div class="section-title">Agents</div>
+                <div id="agentList"></div>
+                <div class="section-title" style="margin-top: 16px;">History</div>
+                <div id="historyList"><div style="font-size: 12px; color: var(--text-3); padding: 8px;">No history yet</div></div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div class="topbar-title">
+                    <span style="color: var(--blue);">&#9672;</span>
+                    Orbit PRO
+                    <span class="topbar-badge" id="connBadge">Demo</span>
+                </div>
+            </div>
+
+            <div class="chat" id="viewChat">
+                <div class="messages" id="messages"></div>
+                <div class="input-area">
+                    <div class="input-wrap">
+                        <div class="input-box">
+                            <textarea id="userInput" placeholder="Ask me anything..." rows="1"></textarea>
+                            <button class="send-btn" onclick="sendMsg()">&#9650;</button>
+                        </div>
+                        <div class="hint">Enter to send</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat hidden" id="viewOrch">
+                <div class="messages">
+                    <div style="max-width: 600px; margin: 0 auto;">
+                        <h2 style="font-size: 20px; margin-bottom: 6px;">Multi-Agent Workflow</h2>
+                        <p style="color: var(--text-2); font-size: 13px; margin-bottom: 16px;">Task runs through Architect, Engineer, then Reviewer</p>
+                        <div class="input-box" style="margin-bottom: 16px;">
+                            <textarea id="orchInput" placeholder="What do you want to build?" rows="2" style="min-height: 40px;"></textarea>
+                            <button class="send-btn" onclick="runOrch()">&#9654;</button>
+                        </div>
+                        <div id="wfSteps"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat hidden" id="viewTerm">
+                <div style="flex: 1; padding: 16px;">
+                    <div style="background: #0c0c10; border-radius: 10px; height: 100%; display: flex; flex-direction: column; border: 1px solid var(--border);">
+                        <div style="padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; gap: 6px;">
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f57;"></div>
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: #febc2e;"></div>
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: #28c840;"></div>
+                        </div>
+                        <div style="flex: 1; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; overflow-y: auto; color: var(--text-1);" id="termOut">
+                            <div style="color: var(--green);">$ Ready</div>
+                        </div>
+                        <div style="padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center;">
+                            <span style="color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 12px;">$</span>
+                            <input type="text" id="termInput" style="flex: 1; background: none; border: none; color: var(--text-0); font-family: 'JetBrains Mono', monospace; font-size: 12px;" placeholder="Type command..." onkeypress="if(event.key==='Enter')runCmd()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="rpanel" id="rpanel">
+            <div class="rpanel-head">
+                <h3>Details</h3>
+            </div>
+            <div class="rpanel-tabs">
+                <div class="rpanel-tab active" onclick="switchTab(this, 'tools')">Tools</div>
+                <div class="rpanel-tab" onclick="switchTab(this, 'files')">Files</div>
+                <div class="rpanel-tab" onclick="switchTab(this, 'wf')">Workflow</div>
+            </div>
+            <div class="rpanel-body" id="tabTools"></div>
+            <div class="rpanel-body hidden" id="tabFiles"></div>
+            <div class="rpanel-body hidden" id="tabWf"></div>
+        </aside>
+    </div>
+
+    <script>
+        const agents = [
+            { name: 'architect', icon: '&#127959;', color: '#3b82f6', desc: 'Designs systems' },
+            { name: 'engineer', icon: '&#9889;', color: '#22c55e', desc: 'Writes code' },
+            { name: 'coder', icon: '&#128187;', color: '#eab308', desc: 'Coding help' },
+            { name: 'researcher', icon: '&#128300;', color: '#ef4444', desc: 'Research' },
+            { name: 'reviewer', icon: '&#128269;', color: '#f97316', desc: 'Code review' },
+            { name: 'devops', icon: '&#128640;', color: '#a855f7', desc: 'DevOps' }
+        ];
+
+        let selAgent = 'engineer';
+        let connected = false;
+        let sid = crypto.randomUUID();
+        let hist = [];
+
+        function init() {
+            renderAgents();
+            loadTools();
+            loadFiles();
+            setupInput();
+            showWelcome();
+        }
+
+        function renderAgents() {
+            const el = document.getElementById('agentList');
+            el.innerHTML = agents.map(a => `
+                <div class="agent-card ${a.name === selAgent ? 'active' : ''}" onclick="pickAgent('${a.name}')">
+                    <div class="agent-icon" style="background: ${a.color}20; color: ${a.color};">${a.icon}</div>
+                    <div>
+                        <div class="agent-name">${a.name}</div>
+                        <div class="agent-desc">${a.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function pickAgent(name) {
+            selAgent = name;
+            renderAgents();
+        }
+
+        function switchView(view) {
+            document.querySelectorAll('.rail-btn[data-view]').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.rail-btn[data-view="${view}"]`)?.classList.add('active');
+            document.getElementById('viewChat').classList.toggle('hidden', view !== 'chat');
+            document.getElementById('viewOrch').classList.toggle('hidden', view !== 'orch');
+            document.getElementById('viewTerm').classList.toggle('hidden', view !== 'term');
+        }
+
+        function switchTab(el, tab) {
+            document.querySelectorAll('.rpanel-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('tabTools').classList.toggle('hidden', tab !== 'tools');
+            document.getElementById('tabFiles').classList.toggle('hidden', tab !== 'files');
+            document.getElementById('tabWf').classList.toggle('hidden', tab !== 'wf');
+        }
+
+        function togglePanel() {
+            document.getElementById('rpanel').classList.toggle('hidden');
+        }
+
+        function showWelcome() {
+            document.getElementById('messages').innerHTML = `
+                <div style="max-width: 500px; margin: 80px auto; text-align: center;">
+                    <div style="font-size: 40px; margin-bottom: 12px; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Orbit</div>
+                    <p style="color: var(--text-2); font-size: 14px; margin-bottom: 20px;">Your AI development team. Pick an agent and start building.</p>
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        ${agents.map(a => `<div style="padding: 8px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; cursor: pointer;" onclick="pickAgent('${a.name}');document.getElementById('userInput').focus();">${a.icon} ${a.name}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupInput() {
+            const ta = document.getElementById('userInput');
+            ta.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+            });
+            ta.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMsg();
+                }
+            });
+        }
+
+        async function sendMsg() {
+            const ta = document.getElementById('userInput');
+            const msg = ta.value.trim();
+            if (!msg) return;
+
+            // Clear welcome
+            const m = document.getElementById('messages');
+            if (m.children.length === 1 && m.children[0].querySelector('div[style*="margin: 80px"]')) {
+                m.innerHTML = '';
+            }
+
+            addMsg('user', msg);
+            ta.value = '';
+            ta.style.height = 'auto';
+
+            showTyping();
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agent: selAgent, message: msg, session_id: sid })
+                });
+                const data = await res.json();
+                hideTyping();
+                if (data.error) {
+                    addMsg('agent', 'Error: ' + data.error);
+                } else {
+                    addMsg('agent', data.response || 'No response');
+                }
+            } catch(e) {
+                hideTyping();
+                addMsg('agent', 'Connection error. Check if server is running.');
+            }
+        }
+
+        function addMsg(type, text) {
+            const container = document.getElementById('messages');
+            const a = agents.find(x => x.name === selAgent) || agents[1];
+            const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            const div = document.createElement('div');
+            div.className = 'msg';
+            div.innerHTML = `
+                <div class="msg-head">
+                    <div class="msg-avatar" style="background: ${type === 'user' ? 'var(--bg-4)' : a.color + '20'}; color: ${type === 'user' ? 'var(--text-1)' : a.color};">${type === 'user' ? 'U' : a.icon}</div>
+                    <span class="msg-name">${type === 'user' ? 'You' : selAgent}</span>
+                    <span class="msg-time">${t}</span>
+                </div>
+                <div class="msg-body">${fmt(text)}</div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function fmt(text) {
+            if (!text) return '';
+            // Code blocks
+            text = text.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+            // Inline code
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            // Bold
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Tables
+            text = text.replace(/\|(.+)\|/g, (match) => {
+                return match;
+            });
+            // Newlines
+            text = text.replace(/\n/g, '<br>');
+            return text;
+        }
+
+        function showTyping() {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.id = 'typing';
+            div.className = 'msg';
+            div.innerHTML = `
+                <div class="msg-head">
+                    <div class="msg-avatar" style="background: var(--blue)20; color: var(--blue);">...</div>
+                    <span class="msg-name">${selAgent}</span>
+                </div>
+                <div class="msg-body" style="color: var(--text-3);">Thinking...</div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideTyping() {
+            document.getElementById('typing')?.remove();
+        }
+
+        function newChat() {
+            sid = crypto.randomUUID();
+            document.getElementById('messages').innerHTML = '';
+            showWelcome();
+        }
+
+        async function loadTools() {
+            try {
+                const res = await fetch('/api/tools');
+                const data = await res.json();
+                document.getElementById('tabTools').innerHTML = (data.tools || []).map(t => `
+                    <div class="tool-item">
+                        <div class="tool-icon">&#128295;</div>
+                        <div>
+                            <div class="tool-name">${t.name}</div>
+                            <div class="tool-desc">${t.description}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                document.getElementById('tabTools').innerHTML = '<div style="color: var(--text-3); font-size: 12px;">Failed to load tools</div>';
+            }
+        }
+
+        async function loadFiles() {
+            try {
+                const res = await fetch('/api/files?path=.');
+                const data = await res.json();
+                const files = (data.files || []).slice(0, 20);
+                document.getElementById('tabFiles').innerHTML = files.map(f => `
+                    <div class="file-item" onclick="${f.is_dir ? '' : `viewFile('${f.path.replace(/\\/g, '/')}')`}">
+                        <span class="file-icon">${f.is_dir ? '&#128193;' : '&#128196;'}</span>
+                        <span class="file-name">${f.name}</span>
+                        <span class="file-meta">${f.is_dir ? '' : fmtSize(f.size)}</span>
+                    </div>
+                `).join('') || '<div style="color: var(--text-3); font-size: 12px;">No files</div>';
+            } catch(e) {
+                document.getElementById('tabFiles').innerHTML = '<div style="color: var(--text-3); font-size: 12px;">Failed to load files</div>';
+            }
+        }
+
+        async function viewFile(path) {
+            try {
+                const res = await fetch('/api/file?path=' + encodeURIComponent(path));
+                const data = await res.json();
+                if (data.error) {
+                    addMsg('agent', 'Error: ' + data.error);
+                } else {
+                    addMsg('user', 'Open: ' + path.split(/[/\\]/).pop());
+                    addMsg('agent', '```\n' + (data.content || '').substring(0, 2000) + '\n```');
+                }
+            } catch(e) {
+                addMsg('agent', 'Error loading file');
+            }
+        }
+
+        function fmtSize(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1048576) return (b/1024).toFixed(0) + ' KB';
+            return (b/1048576).toFixed(1) + ' MB';
+        }
+
+        async function runOrch() {
+            const ta = document.getElementById('orchInput');
+            const task = ta.value.trim();
+            if (!task) return;
+
+            const steps = document.getElementById('wfSteps');
+            steps.innerHTML = `
+                <div class="wf-step">
+                    <div class="wf-icon running">&#127959;</div>
+                    <div>
+                        <div class="wf-title">Architect</div>
+                        <div class="wf-status" style="color: var(--blue);">Running...</div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const res = await fetch('/api/orchestrate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ task })
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    steps.innerHTML = `<div style="color: var(--red); font-size: 13px;">${data.error}</div>`;
+                    return;
+                }
+
+                steps.innerHTML = (data.phases || []).map((p, i) => {
+                    const a = agents.find(x => x.name === p.agent) || agents[0];
+                    return `
+                        <div class="wf-step">
+                            <div class="wf-icon done">${a.icon}</div>
+                            <div style="flex: 1;">
+                                <div class="wf-title">${p.agent}</div>
+                                <div class="wf-status" style="color: var(--green);">Done</div>
+                                <div class="wf-result">${fmt(p.result || '').substring(0, 400)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch(e) {
+                steps.innerHTML = `<div style="color: var(--red); font-size: 13px;">Error: ${e.message}</div>`;
+            }
+        }
+
+        async function runCmd() {
+            const input = document.getElementById('termInput');
+            const cmd = input.value.trim();
+            if (!cmd) return;
+
+            const out = document.getElementById('termOut');
+            out.innerHTML += `<div style="color: var(--green);">$ ${esc(cmd)}</div>`;
+            input.value = '';
+
+            try {
+                const res = await fetch('/api/terminal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmd })
+                });
+                const data = await res.json();
+                if (data.stdout) out.innerHTML += `<div>${esc(data.stdout)}</div>`;
+                if (data.stderr) out.innerHTML += `<div style="color: var(--red);">${esc(data.stderr)}</div>`;
+            } catch(e) {
+                out.innerHTML += `<div style="color: var(--red);">Error: ${e.message}</div>`;
+            }
+
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function esc(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        async function connectApi() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (!key) return;
+
+            try {
+                const res = await fetch('/api/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: key })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('modal').classList.add('hidden');
+                    document.getElementById('connBadge').textContent = 'Connected';
+                    document.getElementById('connBadge').style.background = 'rgba(34,197,94,0.15)';
+                    document.getElementById('connBadge').style.color = 'var(--green)';
+                    connected = true;
+                    toast('Connected to Gemini AI');
+                } else {
+                    toast(data.message || 'Connection failed');
+                }
+            } catch(e) {
+                toast('Network error');
+            }
+        }
+
+        function skipModal() {
+            document.getElementById('modal').classList.add('hidden');
+            toast('Running in demo mode');
+        }
+
+        function toast(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
