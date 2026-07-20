@@ -1,4 +1,4 @@
-# Orbit PRO - AI Agent Platform
+# Mini Antigravity
 
 A premium AI agent orchestration system inspired by Google Antigravity.
 
